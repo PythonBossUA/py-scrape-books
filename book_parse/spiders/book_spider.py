@@ -7,6 +7,9 @@ class BookSpiderSpider(scrapy.Spider):
     allowed_domains = ["books.toscrape.com"]
     start_urls = ["https://books.toscrape.com/"]
 
+    def nbsp_remover(self, text: str):
+        return text.replace(" ", "")
+
     def parse_book(self, book_body: Response):
         rating_dictionary = {
             "One": "1",
@@ -24,8 +27,10 @@ class BookSpiderSpider(scrapy.Spider):
                 book_body.css("p.star-rating::attr(class)").get().rsplit(maxsplit=1)[-1]
             ],
             "category": book_body.css("ul.breadcrumb li:nth-last-child(2) a::text").get(),
-            "description": book_body.css("#product_description + p::text").get(),
-            "UPC": book_body.css("table tr:first-child td::text").get()
+            "description": self.nbsp_remover(
+                book_body.css("#product_description + p::text").get()
+            ),
+            "upc": book_body.css("table tr:first-child td::text").get()
         }
 
     def parse(self, response: Response):
